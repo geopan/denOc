@@ -1,21 +1,39 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./Expr";
+import {
+  Binary,
+  Expr,
+  Grouping,
+  Literal,
+  Unary,
+  ExprVisitor,
+  Variable,
+} from "./Expr";
+import { Expression, Print, Stmt, StmtVisitor, Var } from "./Stmt";
 import { RuntimeError } from "./error";
 import { Token, TokenType } from "./lexer";
+import Environment from "./Environment";
 
 function runtimeError(error: RuntimeError) {
   console.error(`${error.message} [${error.token.line}]`);
 }
 
-export default class Interpreter implements Visitor<any> {
-  interpret(expression: Expr): void {
+export default class Interpreter
+  implements ExprVisitor<any>, StmtVisitor<void> {
+  private environment = new Environment();
+
+  interpret(statements: Stmt[]): void {
     try {
-      const v = this.evaluate(expression);
-      console.log(this.stringify(v));
+      for (let statement of statements) {
+        this.execute(statement);
+      }
     } catch (error) {
       if (error instanceof RuntimeError) {
         runtimeError(error);
       }
     }
+  }
+
+  private execute(stmt: Stmt) {
+    stmt.accept(this);
   }
 
   visitLiteralExpr(expr: Literal): any {
@@ -99,6 +117,28 @@ export default class Interpreter implements Visitor<any> {
 
   private evaluate(expr: Expr): any {
     return expr.accept(this);
+  }
+
+  visitExpressionStmt(stmt: Expression) {
+    this.evaluate(stmt.expression);
+  }
+
+  visitPrintStmt(stmt: Print): void {
+    const value = this.evaluate(stmt.expression);
+    return console.log(this.stringify(value));
+  }
+
+  visitVarStmt(stmt: Var): void {
+    let value;
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+
+    this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitVariableExpr(expr: Variable) {
+    return this.environment.get(expr.name);
   }
 
   private isTruthy(v: any) {

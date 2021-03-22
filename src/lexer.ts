@@ -44,24 +44,25 @@ export enum TokenType {
   EOF = "EOF",
 }
 
-export const keywords: { [key: string]: TokenType } = {
-  e: TokenType.AND,
-  o: TokenType.OR,
-  classa: TokenType.CLASS,
-  se: TokenType.IF,
-  senon: TokenType.ELSE,
-  fals: TokenType.FALSE,
-  foncion: TokenType.FN,
-  per: TokenType.FOR,
-  nul: TokenType.NIL,
-  estampat: TokenType.PRINT,
-  tornar: TokenType.RETURN,
-  eretar: TokenType.SUPER,
-  aico: TokenType.THIS,
-  vertat: TokenType.TRUE,
-  var: TokenType.VAR,
-  temps: TokenType.WHILE,
-};
+export const keywords: Map<string, TokenType> = new Map([
+  ["e", TokenType.AND],
+  ["o", TokenType.OR],
+  ["classa", TokenType.CLASS],
+  ["se", TokenType.IF],
+  ["senon", TokenType.ELSE],
+  ["fals", TokenType.FALSE],
+  ["foncion", TokenType.FN],
+  ["per", TokenType.FOR],
+  ["nul", TokenType.NIL],
+  ["estampat", TokenType.PRINT],
+  ["est", TokenType.PRINT],
+  ["tornar", TokenType.RETURN],
+  ["eretar", TokenType.SUPER],
+  ["aico", TokenType.THIS],
+  ["true", TokenType.TRUE],
+  ["var", TokenType.VAR],
+  ["temps", TokenType.WHILE],
+]);
 
 export class Token {
   constructor(

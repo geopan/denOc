@@ -1,0 +1,7 @@
+est "hello" + " " + "katie";
+est "\n";
+est "This is my first Oc program";
+
+est 1+1;
+est 1 + 2;
+est 1 / 0;

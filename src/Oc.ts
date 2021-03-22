@@ -4,8 +4,8 @@ import readline from "readline";
 import { Token, TokenType } from "./lexer";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
-import AstPrinter from "./AstPrinter";
 import Interpreter from "./Interpreter";
+import { Stmt } from "./Stmt";
 
 export default class Oc {
   private static interpreter = new Interpreter();
@@ -47,11 +47,11 @@ export default class Oc {
     const tokens = scanner.scanTokens();
 
     const parser = new Parser(tokens);
-    const expression = parser.parse();
+    const statements: Stmt[] = parser.parse();
 
     if (this.hadError) return;
 
-    this.interpreter.interpret(expression);
+    this.interpreter.interpret(statements);
   }
 
   static error(obj: Token | number, msg: string): void {
@@ -69,6 +69,6 @@ export default class Oc {
   }
 
   private static report(line: number, where: string, msg: string) {
-    console.error(`[line ${line}] Error ${where}: ${msg}`);
+    console.error(`Error ${where}: ${msg} [${line}]`);
   }
 }

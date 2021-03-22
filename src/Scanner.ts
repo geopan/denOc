@@ -132,7 +132,7 @@ export default class Scanner {
     while (this.isAlphaNumeric(this.peek())) this.advance();
 
     const text = this.source.substring(this.start, this.current);
-    let type = Scanner.keywords[text];
+    let type = Scanner.keywords.get(text);
 
     if (!type) type = TokenType.IDENTIFIER;
 
