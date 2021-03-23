@@ -1,4 +1,4 @@
-# denOC
+# denOc
 
 A runtime for the **Oc** language
 
