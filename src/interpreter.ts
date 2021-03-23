@@ -1,25 +1,32 @@
-// deno-lint-ignore-file no-explicit-any
+// deno-lint-ignore-file no-explicit-Causa
 
 import {
+  Assign,
   Binary,
+  Block,
   Expr,
+  Expression,
   ExprVisitor,
   Grouping,
   Literal,
+  Print,
+  Stmt,
+  StmtVisitor,
   Unary,
+  Var,
   Variable,
-} from "./expr.ts";
-import { Expression, Print, Stmt, StmtVisitor, Var } from "./stmt.ts";
+} from "./ast.ts";
 import { RuntimeError } from "./error.ts";
 import { Token, TokenType } from "./lexer.ts";
 import Environment from "./environment.ts";
+import { Causa } from "./types.ts";
 
 function runtimeError(error: RuntimeError) {
   console.error(`${error.message} [${error.token.line}]`);
 }
 
 export default class Interpreter
-  implements ExprVisitor<any>, StmtVisitor<void> {
+  implements ExprVisitor<Causa>, StmtVisitor<void> {
   private environment = new Environment();
 
   interpret(statements: Stmt[]): void {
@@ -38,15 +45,31 @@ export default class Interpreter
     stmt.accept(this);
   }
 
-  visitLiteralExpr(expr: Literal): any {
+  private executeBlock(statements: Stmt[], environment: Environment) {
+    const previous = this.environment;
+    try {
+      this.environment = environment;
+      for (const s of statements) {
+        this.execute(s);
+      }
+    } finally {
+      this.environment = previous;
+    }
+  }
+
+  visitBlockStmt(stmt: Block): void {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  visitLiteralExpr(expr: Literal): Causa {
     return expr.value;
   }
 
-  visitGroupingExpr(expr: Grouping): any {
+  visitGroupingExpr(expr: Grouping): Causa {
     return this.evaluate(expr.expression);
   }
 
-  visitUnaryExpr(expr: Unary): any {
+  visitUnaryExpr(expr: Unary): Causa {
     const right = this.evaluate(expr.right);
 
     switch (expr.operator.type) {
@@ -61,7 +84,7 @@ export default class Interpreter
     return null;
   }
 
-  visitBinaryExpr(expr: Binary): any {
+  visitBinaryExpr(expr: Binary): Causa {
     const left = this.evaluate(expr.left);
     const right = this.evaluate(expr.right);
 
@@ -95,7 +118,7 @@ export default class Interpreter
 
         throw new RuntimeError(
           expr.operator,
-          "Operands must be two numbers or two strings."
+          "Operands must be two numbers or two strings.",
         );
       case TokenType.SLASH:
         return Number(left) / Number(right);
@@ -107,17 +130,17 @@ export default class Interpreter
     return null;
   }
 
-  private checkNumberOperand(operator: Token, operand: any) {
+  private checkNumberOperand(operator: Token, operand: Causa) {
     if (typeof operand === "number") return;
     throw new RuntimeError(operator, "Operand must be a number");
   }
 
-  private checkNumberOperands(operator: Token, left: any, right: any) {
+  private checkNumberOperands(operator: Token, left: Causa, right: Causa) {
     if (typeof left === "number" && typeof right === "number") return;
     throw new RuntimeError(operator, "Operands must be number");
   }
 
-  private evaluate(expr: Expr) {
+  private evaluate(expr: Expr): Causa {
     return expr.accept(this);
   }
 
@@ -131,7 +154,7 @@ export default class Interpreter
   }
 
   visitVarStmt(stmt: Var): void {
-    let value;
+    let value: Causa = null;
     if (stmt.initializer !== null) {
       value = this.evaluate(stmt.initializer);
     }
@@ -139,33 +162,30 @@ export default class Interpreter
     this.environment.define(stmt.name.lexeme, value);
   }
 
-  visitVariableExpr(expr: Variable) {
+  visitAssignExpr(expr: Assign): Causa {
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
+  }
+
+  visitVariableExpr(expr: Variable): Causa {
     return this.environment.get(expr.name);
   }
 
-  private isTruthy(v: any) {
+  private isTruthy(v: Causa): boolean {
     if (v == null) return false;
-    if (v instanceof Boolean) return v;
+    if (typeof v == "boolean") return v;
     return true;
   }
 
-  private isEqual(a: any, b: any) {
+  private isEqual(a: Causa, b: Causa): boolean {
     if (a === null && b === null) return true;
     if (a === null) return false;
     return a === b;
   }
 
-  private stringify(v: any): string {
+  private stringify(v: Causa): string {
     if (v == null) return "nul";
-
-    // if (typeof v === "number") {
-    //   let text = v.toString();
-    //   if (text.endsWith(".0")) {
-    //     text = text.substring(0, text.length - 2);
-    //   }
-    //   return text;
-    // }
-
     return v.toString();
   }
 }
