@@ -1,6 +1,4 @@
-import { WriteStream, createWriteStream } from "fs";
-
-import path from "path";
+import { createWriteStream, WriteStream } from "fs";
 
 const expressions = [
   "Binary   : Expr left, Token operator, Expr right",
@@ -20,7 +18,7 @@ class GenerateAst {
   constructor(args: string[]) {
     if (args.length != 1) {
       console.error("Usage: generate_ast <output directory>");
-      process.exit(64);
+      Deno.exit(64);
     }
     const outputDir = args[0];
     GenerateAst.defineAst(outputDir, "Expr", expressions);
@@ -32,7 +30,7 @@ class GenerateAst {
     baseName: string,
     types: string[]
   ): void {
-    const p = path.resolve(`src/${outputDir}/${baseName}.ts`);
+    const p = `src/${outputDir}/${baseName}.ts`;
 
     const writer = createWriteStream(p);
 
@@ -78,19 +76,10 @@ class GenerateAst {
       return `readonly ${fieldArgs[1]}: ${fieldArgs[0]}`;
     });
 
-    // args.forEach((arg) => {
-    //   writer.write(`  ${arg};\n`);
-    // });
-
     // Constructor.
     writer.write(`  constructor(${args.join(", ")}) {\n`);
 
     writer.write(`    super();\n`);
-
-    // fields.forEach((field) => {
-    //   const name = field.split(" ")[1];
-    //   writer.write(`    this.${name} = ${name};\n`);
-    // });
 
     writer.write(`  }\n\n`);
 
@@ -98,7 +87,6 @@ class GenerateAst {
     writer.write(`    return visitor.visit${className}${baseName}(this);\n`);
     writer.write(`  }\n\n`);
 
-    // writer.println("  }");
     writer.write(`}\n\n`);
   }
 }

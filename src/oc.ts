@@ -1,13 +1,14 @@
-import fs from "fs";
-import path from "path";
-import readline from "readline";
-import { Token, TokenType } from "./lexer";
-import Scanner from "./Scanner";
-import Parser from "./Parser";
-import Interpreter from "./Interpreter";
-import { Stmt } from "./Stmt";
+// deno-lint-ignore-file no-inferrable-types
 
-export default class Oc {
+import { readLines } from "https://deno.land/std@0.91.0/io/bufio.ts";
+
+import { Token, TokenType } from "./lexer.ts";
+import Scanner from "./scanner.ts";
+import Parser from "./parser.ts";
+import Interpreter from "./interpreter.ts";
+import { Stmt } from "./stmt.ts";
+
+export class Oc {
   private static interpreter = new Interpreter();
   static hadError: boolean = false;
   static hadRuntimeError: boolean = false;
@@ -15,7 +16,7 @@ export default class Oc {
   constructor(args: string[]) {
     if (args.length > 1) {
       console.log("Usage: tsOc [script]");
-      process.exit(64);
+      Deno.exit(64);
     } else if (args.length == 1) {
       Oc.runFile(args[0]);
     } else {
@@ -24,22 +25,26 @@ export default class Oc {
   }
 
   private static runFile(p: string): void {
-    const bytes: Buffer = fs.readFileSync(path.resolve(p));
+    const bytes = Deno.readFileSync(p);
     this.run(bytes.toString());
 
-    if (this.hadError) process.exit(65);
-    if (this.hadRuntimeError) process.exit(70);
+    if (this.hadError) Deno.exit(65);
+    if (this.hadRuntimeError) Deno.exit(70);
   }
 
-  private static runPrompt(): void {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      // output: process.stdout,
-    });
+  private static async runPrompt(): Promise<void> {
+    for await (const line of readLines(Deno.stdin)) {
+      this.run(line);
+    }
 
-    rl.on("line", (input) => {
-      input && this.run(input);
-    });
+    // const rl = readline.createInterface({
+    //   input: Deno.stdin,
+    //   // output: process.stdout,
+    // });
+
+    // rl.on("line", (input: string) => {
+    //   input && this.run(input);
+    // });
   }
 
   private static run(source: string): void {

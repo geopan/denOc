@@ -1,5 +1,5 @@
-import { Expr } from "./Expr";
-import { Token } from "./lexer";
+import { Expr } from "./expr.ts";
+import { Token } from "./lexer.ts";
 
 export interface StmtVisitor<R> {
   visitExpressionStmt(expr: Expression): R;
@@ -8,11 +8,10 @@ export interface StmtVisitor<R> {
 }
 
 export abstract class Stmt {
-  abstract accept<R>(visitor: StmtVisitor<R>): R
+  abstract accept<R>(visitor: StmtVisitor<R>): R;
 }
 
 export class Expression extends Stmt {
-
   constructor(readonly expression: Expr) {
     super();
   }
@@ -20,11 +19,9 @@ export class Expression extends Stmt {
   public accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitExpressionStmt(this);
   }
-
 }
 
 export class Print extends Stmt {
-
   constructor(readonly expression: Expr) {
     super();
   }
@@ -32,11 +29,9 @@ export class Print extends Stmt {
   public accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitPrintStmt(this);
   }
-
 }
 
 export class Var extends Stmt {
-
   constructor(readonly name: Token, readonly initializer: Expr) {
     super();
   }
@@ -44,6 +39,4 @@ export class Var extends Stmt {
   public accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitVarStmt(this);
   }
-
 }
-

@@ -1,4 +1,4 @@
-import { Token } from "./lexer";
+import { Token } from "./lexer.ts";
 
 export class CliError extends Error {
   name = "CliError";
@@ -12,7 +12,7 @@ export class SyntaxError extends Error {
   constructor(
     readonly message: string,
     readonly line?: number,
-    readonly where?: number
+    readonly where?: number,
   ) {
     super();
   }

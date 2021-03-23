@@ -1,7 +1,9 @@
-import { Token, TokenType } from "./lexer";
-import { Binary, Expr, Grouping, Literal, Variable } from "./Expr";
-import Oc from "./Oc";
-import { Stmt, Print, Expression, Var } from "./Stmt";
+// deno-lint-ignore-file no-explicit-any no-inferrable-types
+
+import { Token, TokenType } from "./lexer.ts";
+import { Binary, Expr, Grouping, Literal, Variable } from "./expr.ts";
+import { Oc } from "./oc.ts";
+import { Expression, Print, Stmt, Var } from "./stmt.ts";
 
 class ParseError extends Error {}
 
@@ -16,7 +18,6 @@ export default class Parser {
   parse(): Stmt[] {
     const statements: Stmt[] = [];
     while (!this.isAtEnd()) {
-      // statements.push(this.statement());
       statements.push(this.declaration());
     }
 
@@ -143,8 +144,9 @@ export default class Parser {
     if (this.match(TokenType.TRUE)) return new Literal(true);
     if (this.match(TokenType.NIL)) return new Literal(null);
 
-    if (this.match(TokenType.NUMBER, TokenType.STRING))
+    if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
 
     if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous());
 
@@ -158,7 +160,7 @@ export default class Parser {
   }
 
   private match(...types: TokenType[]): boolean {
-    for (let type of types) {
+    for (const type of types) {
       if (this.check(type)) {
         this.advanced();
         return true;

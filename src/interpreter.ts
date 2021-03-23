@@ -1,16 +1,18 @@
+// deno-lint-ignore-file no-explicit-any
+
 import {
   Binary,
   Expr,
+  ExprVisitor,
   Grouping,
   Literal,
   Unary,
-  ExprVisitor,
   Variable,
-} from "./Expr";
-import { Expression, Print, Stmt, StmtVisitor, Var } from "./Stmt";
-import { RuntimeError } from "./error";
-import { Token, TokenType } from "./lexer";
-import Environment from "./Environment";
+} from "./expr.ts";
+import { Expression, Print, Stmt, StmtVisitor, Var } from "./stmt.ts";
+import { RuntimeError } from "./error.ts";
+import { Token, TokenType } from "./lexer.ts";
+import Environment from "./environment.ts";
 
 function runtimeError(error: RuntimeError) {
   console.error(`${error.message} [${error.token.line}]`);
@@ -22,7 +24,7 @@ export default class Interpreter
 
   interpret(statements: Stmt[]): void {
     try {
-      for (let statement of statements) {
+      for (const statement of statements) {
         this.execute(statement);
       }
     } catch (error) {
@@ -115,7 +117,7 @@ export default class Interpreter
     throw new RuntimeError(operator, "Operands must be number");
   }
 
-  private evaluate(expr: Expr): any {
+  private evaluate(expr: Expr) {
     return expr.accept(this);
   }
 
@@ -156,13 +158,13 @@ export default class Interpreter
   private stringify(v: any): string {
     if (v == null) return "nul";
 
-    if (typeof v === "number") {
-      let text = v.toString();
-      // if (text.endsWith(".0")) {
-      //   text = text.substring(0, text.length - 2);
-      // }
-      return text;
-    }
+    // if (typeof v === "number") {
+    //   let text = v.toString();
+    //   if (text.endsWith(".0")) {
+    //     text = text.substring(0, text.length - 2);
+    //   }
+    //   return text;
+    // }
 
     return v.toString();
   }

@@ -1,4 +1,6 @@
-import { Token } from "./lexer";
+// deno-lint-ignore-file no-explicit-any
+
+import { Token } from "./lexer.ts";
 
 export interface ExprVisitor<R> {
   visitBinaryExpr(expr: Binary): R;
@@ -9,23 +11,24 @@ export interface ExprVisitor<R> {
 }
 
 export abstract class Expr {
-  abstract accept<R>(visitor: ExprVisitor<R>): R
+  abstract accept<R>(visitor: ExprVisitor<R>): R;
 }
 
 export class Binary extends Expr {
-
-  constructor(readonly left: Expr, readonly operator: Token, readonly right: Expr) {
+  constructor(
+    readonly left: Expr,
+    readonly operator: Token,
+    readonly right: Expr,
+  ) {
     super();
   }
 
   public accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitBinaryExpr(this);
   }
-
 }
 
 export class Grouping extends Expr {
-
   constructor(readonly expression: Expr) {
     super();
   }
@@ -33,11 +36,9 @@ export class Grouping extends Expr {
   public accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitGroupingExpr(this);
   }
-
 }
 
 export class Literal extends Expr {
-
   constructor(readonly value: any) {
     super();
   }
@@ -45,11 +46,9 @@ export class Literal extends Expr {
   public accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitLiteralExpr(this);
   }
-
 }
 
 export class Unary extends Expr {
-
   constructor(readonly operator: Token, readonly right: Expr) {
     super();
   }
@@ -57,11 +56,9 @@ export class Unary extends Expr {
   public accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitUnaryExpr(this);
   }
-
 }
 
 export class Variable extends Expr {
-
   constructor(readonly name: Token) {
     super();
   }
@@ -69,6 +66,4 @@ export class Variable extends Expr {
   public accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitVariableExpr(this);
   }
-
 }
-

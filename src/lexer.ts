@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 export enum TokenType {
   // Sinfle-character tokens
   LEFT_PAREN = "LEFT_PAREN",
@@ -69,7 +71,7 @@ export class Token {
     readonly type: TokenType,
     readonly lexeme: string,
     readonly literal: any,
-    readonly line: number
+    readonly line: number,
   ) {}
 
   toString(): string {

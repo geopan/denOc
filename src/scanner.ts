@@ -1,5 +1,7 @@
-import { Token, TokenType, keywords } from "./lexer";
-import Oc from "./Oc";
+// deno-lint-ignore-file no-explicit-any no-inferrable-types
+
+import { keywords, Token, TokenType } from "./lexer.ts";
+import { Oc } from "./oc.ts";
 
 export default class Scanner {
   private source: string;
@@ -67,7 +69,7 @@ export default class Scanner {
         break;
       case "=":
         this.addToken(
-          this.match("=") ? TokenType.EQUAL_EQUAL : TokenType.EQUAL
+          this.match("=") ? TokenType.EQUAL_EQUAL : TokenType.EQUAL,
         );
         break;
       case "<":
@@ -75,7 +77,7 @@ export default class Scanner {
         break;
       case ">":
         this.addToken(
-          this.match("=") ? TokenType.GREATER_EQUAL : TokenType.GREATER
+          this.match("=") ? TokenType.GREATER_EQUAL : TokenType.GREATER,
         );
         break;
       case "/":
@@ -164,7 +166,7 @@ export default class Scanner {
 
     this.addToken(
       TokenType.NUMBER,
-      Number(this.source.substring(this.start, this.current))
+      Number(this.source.substring(this.start, this.current)),
     );
   }
 
