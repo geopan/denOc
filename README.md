@@ -12,3 +12,9 @@ language, an experimental programming language crafted following the excellent
 ```shell
 curl -fsSL https://deno.land/x/install/install.sh | sh
 ```
+
+## Usage
+
+```shell
+deno run --allow-read main.ts <script> # to run a specified script file
+```
