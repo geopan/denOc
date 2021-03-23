@@ -1,9 +1,20 @@
-// deno-lint-ignore-file no-explicit-any no-inferrable-types
+// deno-lint-ignore-file no-inferrable-types
 
 import { Token, TokenType } from "./lexer.ts";
-import { Binary, Expr, Grouping, Literal, Variable } from "./expr.ts";
+import {
+  Assign,
+  Binary,
+  Block,
+  Expr,
+  Expression,
+  Grouping,
+  Literal,
+  Print,
+  Stmt,
+  Var,
+  Variable,
+} from "./ast.ts";
 import { Oc } from "./oc.ts";
-import { Expression, Print, Stmt, Var } from "./stmt.ts";
 
 class ParseError extends Error {}
 
@@ -25,7 +36,7 @@ export default class Parser {
   }
 
   private expression(): Expr {
-    return this.equality();
+    return this.assignment();
   }
 
   private declaration(): Stmt {
@@ -57,6 +68,7 @@ export default class Parser {
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
 
+    if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
   }
 
@@ -70,6 +82,41 @@ export default class Parser {
     const expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(expr);
+  }
+
+  private block(): Stmt[] {
+    const statements: Stmt[] = [];
+
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      statements.push(this.declaration());
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
+  }
+
+  private assignment(): Expr {
+    const expr = this.equality();
+
+    if (this.match(TokenType.EQUAL)) {
+      const equals = this.previous();
+      const value = this.assignment();
+
+      if (expr instanceof Variable) {
+        const name = expr.name;
+        return new Assign(name, value);
+      }
+
+      // throw Parser.error(equals, "Invalid assignment target.")
+
+      /* We report an error if the left-hand side isn’t a valid assignment target, 
+      but we don’t throw it because the parser isn’t in a confused state where 
+      we need to go into panic mode and synchronize. */
+
+      this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
   }
 
   private equality(): Expr {
@@ -92,7 +139,7 @@ export default class Parser {
         TokenType.GREATER,
         TokenType.GREATER_EQUAL,
         TokenType.LESS,
-        TokenType.LESS_EQUAL
+        TokenType.LESS_EQUAL,
       )
     ) {
       const operator: Token = this.previous();
@@ -139,7 +186,7 @@ export default class Parser {
     return expr;
   }
 
-  private primary(): any {
+  private primary(): Expr {
     if (this.match(TokenType.FALSE)) return new Literal(false);
     if (this.match(TokenType.TRUE)) return new Literal(true);
     if (this.match(TokenType.NIL)) return new Literal(null);
@@ -156,7 +203,7 @@ export default class Parser {
       return new Grouping(expr);
     }
 
-    throw Parser.error(this.peek(), "Expect expression");
+    throw this.error(this.peek(), "Expect expression");
   }
 
   private match(...types: TokenType[]): boolean {
@@ -193,10 +240,10 @@ export default class Parser {
 
   private consume(type: TokenType, errorMsg: string): Token {
     if (this.check(type)) return this.advanced();
-    throw Parser.error(this.peek(), errorMsg);
+    throw this.error(this.peek(), errorMsg);
   }
 
-  static error(token: Token, errorMsg: string): ParseError {
+  private error(token: Token, errorMsg: string): ParseError {
     Oc.error(token, errorMsg);
     return new ParseError();
   }

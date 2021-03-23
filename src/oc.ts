@@ -1,12 +1,13 @@
 // deno-lint-ignore-file no-inferrable-types
 
 import { readLines } from "https://deno.land/std@0.91.0/io/bufio.ts";
+import * as path from "https://deno.land/std@0.91.0/path/mod.ts";
 
 import { Token, TokenType } from "./lexer.ts";
 import Scanner from "./scanner.ts";
 import Parser from "./parser.ts";
 import Interpreter from "./interpreter.ts";
-import { Stmt } from "./stmt.ts";
+import { Stmt } from "./ast.ts";
 
 export class Oc {
   private static interpreter = new Interpreter();
@@ -25,8 +26,9 @@ export class Oc {
   }
 
   private static runFile(p: string): void {
-    const bytes = Deno.readFileSync(p);
-    this.run(bytes.toString());
+    const content = Deno.readTextFileSync(path.resolve(p));
+
+    this.run(content);
 
     if (this.hadError) Deno.exit(65);
     if (this.hadRuntimeError) Deno.exit(70);
@@ -36,15 +38,6 @@ export class Oc {
     for await (const line of readLines(Deno.stdin)) {
       this.run(line);
     }
-
-    // const rl = readline.createInterface({
-    //   input: Deno.stdin,
-    //   // output: process.stdout,
-    // });
-
-    // rl.on("line", (input: string) => {
-    //   input && this.run(input);
-    // });
   }
 
   private static run(source: string): void {
