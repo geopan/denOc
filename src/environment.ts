@@ -3,7 +3,7 @@ import { Causa } from "./types.ts";
 import { Token } from "./lexer.ts";
 
 export default class Environment {
-  private values: Map<string, Causa> = new Map();
+  private values: { [key: string]: Causa } = {};
   enclosing: Environment | null;
 
   constructor(enclosing?: Environment) {
@@ -11,12 +11,12 @@ export default class Environment {
   }
 
   define(name: string, value: Causa): void {
-    this.values.set(name, value);
+    this.values[name] = value;
   }
 
   get(name: Token): Causa {
-    if (this.values.has(name.lexeme)) {
-      return this.values.get(name.lexeme) || null;
+    if (this.values[name.lexeme] !== undefined) {
+      return this.values[name.lexeme];
     }
 
     if (this.enclosing !== null) return this.enclosing.get(name);
@@ -25,8 +25,8 @@ export default class Environment {
   }
 
   assign(name: Token, value: Causa): void {
-    if (this.values.has(name.lexeme)) {
-      this.values.set(name.lexeme, value);
+    if (this.values[name.lexeme] !== undefined) {
+      this.values[name.lexeme] = value;
       return;
     }
 

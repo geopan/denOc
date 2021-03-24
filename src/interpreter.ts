@@ -8,13 +8,16 @@ import {
   Expression,
   ExprVisitor,
   Grouping,
+  If,
   Literal,
+  Logical,
   Print,
   Stmt,
   StmtVisitor,
   Unary,
   Var,
   Variable,
+  While,
 } from "./ast.ts";
 import { RuntimeError } from "./error.ts";
 import { Token, TokenType } from "./lexer.ts";
@@ -65,6 +68,18 @@ export default class Interpreter
     return expr.value;
   }
 
+  visitLogicalExpr(expr: Logical): Causa {
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type === TokenType.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
+  }
+
   visitGroupingExpr(expr: Grouping): Causa {
     return this.evaluate(expr.expression);
   }
@@ -112,14 +127,16 @@ export default class Interpreter
         if (typeof left == "number" && typeof right == "number") {
           return Number(left) + Number(right);
         }
-        if (typeof left == "string" && typeof right == "string") {
-          return String(left) + String(right);
+
+        if (typeof left == "string" || typeof right == "string") {
+          return `${left}${right}`;
         }
 
         throw new RuntimeError(
           expr.operator,
-          "Operands must be two numbers or two strings.",
+          "Operands must be two numbers",
         );
+
       case TokenType.SLASH:
         return Number(left) / Number(right);
       case TokenType.STAR:
@@ -148,6 +165,14 @@ export default class Interpreter
     this.evaluate(stmt.expression);
   }
 
+  visitIfStmt(stmt: If) {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch !== null) {
+      this.execute(stmt.elseBranch);
+    }
+  }
+
   visitPrintStmt(stmt: Print): void {
     const value = this.evaluate(stmt.expression);
     return console.log(this.stringify(value));
@@ -160,6 +185,12 @@ export default class Interpreter
     }
 
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitWhileStmt(stmt: While): void {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   visitAssignExpr(expr: Assign): Causa {

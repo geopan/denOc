@@ -6,6 +6,7 @@ export interface ExprVisitor<R> {
   visitBinaryExpr(expr: Binary): R;
   visitGroupingExpr(expr: Grouping): R;
   visitLiteralExpr(expr: Literal): R;
+  visitLogicalExpr(expr: Logical): R;
   visitUnaryExpr(expr: Unary): R;
   visitVariableExpr(expr: Variable): R;
 }
@@ -58,6 +59,20 @@ export class Literal extends Expr {
   }
 }
 
+export class Logical extends Expr {
+  constructor(
+    readonly left: Expr,
+    readonly operator: Token,
+    readonly right: Expr,
+  ) {
+    super();
+  }
+
+  public accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitLogicalExpr(this);
+  }
+}
+
 export class Unary extends Expr {
   constructor(readonly operator: Token, readonly right: Expr) {
     super();
@@ -81,8 +96,10 @@ export class Variable extends Expr {
 export interface StmtVisitor<R> {
   visitBlockStmt(expr: Block): R;
   visitExpressionStmt(expr: Expression): R;
+  visitIfStmt(expr: If): R;
   visitPrintStmt(expr: Print): R;
   visitVarStmt(expr: Var): R;
+  visitWhileStmt(expr: While): R;
 }
 
 export abstract class Stmt {
@@ -109,6 +126,20 @@ export class Expression extends Stmt {
   }
 }
 
+export class If extends Stmt {
+  constructor(
+    readonly condition: Expr,
+    readonly thenBranch: Stmt,
+    readonly elseBranch: Stmt | null,
+  ) {
+    super();
+  }
+
+  public accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitIfStmt(this);
+  }
+}
+
 export class Print extends Stmt {
   constructor(readonly expression: Expr) {
     super();
@@ -126,5 +157,15 @@ export class Var extends Stmt {
 
   public accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitVarStmt(this);
+  }
+}
+
+export class While extends Stmt {
+  constructor(readonly condition: Expr, readonly body: Stmt) {
+    super();
+  }
+
+  public accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitWhileStmt(this);
   }
 }

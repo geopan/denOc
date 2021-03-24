@@ -56,14 +56,13 @@ export const keywords: Map<string, TokenType> = new Map([
   ["foncion", TokenType.FN],
   ["per", TokenType.FOR],
   ["nul", TokenType.NIL],
-  ["estampat", TokenType.PRINT],
   ["est", TokenType.PRINT],
   ["tornar", TokenType.RETURN],
   ["eretar", TokenType.SUPER],
   ["aico", TokenType.THIS],
   ["true", TokenType.TRUE],
   ["var", TokenType.VAR],
-  ["temps", TokenType.WHILE],
+  ["mentre", TokenType.WHILE],
 ]);
 
 export class Token {

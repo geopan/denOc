@@ -42,10 +42,14 @@ export class Oc {
 
   private static run(source: string): void {
     const scanner = new Scanner(source);
+
     const tokens = scanner.scanTokens();
+    // console.debug(tokens);
 
     const parser = new Parser(tokens);
+
     const statements: Stmt[] = parser.parse();
+    // console.debug(statements);
 
     if (this.hadError) return;
 

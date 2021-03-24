@@ -8,11 +8,14 @@ import {
   Expr,
   Expression,
   Grouping,
+  If,
   Literal,
+  Logical,
   Print,
   Stmt,
   Var,
   Variable,
+  While,
 } from "./ast.ts";
 import { Oc } from "./oc.ts";
 
@@ -66,16 +69,40 @@ export default class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
-
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
+  }
+
+  private ifStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'se'.");
+    const condition = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after 'se' condition.");
+
+    const thenBranch = this.statement();
+
+    return new If(
+      condition,
+      thenBranch,
+      this.match(TokenType.ELSE) ? this.statement() : null,
+    );
   }
 
   private printStatement(): Stmt {
     const value = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  private whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'mentre'.");
+    const condition = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after 'condition'.");
+    const body = this.statement();
+
+    return new While(condition, body);
   }
 
   private expressionStatement(): Stmt {
@@ -96,7 +123,8 @@ export default class Parser {
   }
 
   private assignment(): Expr {
-    const expr = this.equality();
+    // const expr = this.equality();
+    const expr = this.or();
 
     if (this.match(TokenType.EQUAL)) {
       const equals = this.previous();
@@ -114,6 +142,30 @@ export default class Parser {
       we need to go into panic mode and synchronize. */
 
       this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+  }
+
+  or(): Expr {
+    let expr = this.and();
+
+    while (this.match(TokenType.OR)) {
+      const operator = this.previous();
+      const right = this.and();
+      expr = new Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  and(): Expr {
+    let expr = this.equality();
+
+    while (this.match(TokenType.AND)) {
+      const operator = this.previous();
+      const right = this.equality();
+      expr = new Logical(expr, operator, right);
     }
 
     return expr;

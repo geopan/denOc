@@ -1,0 +1,13 @@
+var a = 1;
+var b = 2;
+var c = 3;
+
+se (a > b) {
+  est b + " smaller than " + a;
+} senon {
+  se (c > b) {
+    est b + " smaller than " + c;
+  } senon {
+    est c + " smaller than " + b;
+  }
+}

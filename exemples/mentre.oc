@@ -1,0 +1,9 @@
+// mentre (while)
+
+var a = 10;
+var b = 0;
+
+mentre (a > b) {
+  est "b: " + b;
+  b = b + 1;
+}
